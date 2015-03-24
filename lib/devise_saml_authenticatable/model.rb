@@ -28,10 +28,10 @@ module Devise
         include DeviseSamlAuthenticatable::SamlConfig
         def authenticate_with_saml(saml_response) 
           key = Devise.saml_default_user_key
+          attributes = saml_response.attributes
           if (Devise.saml_use_subject)
             auth_value = saml_response.name_id
           else
-            attributes = saml_response.attributes
             inv_attr = attribute_map.invert
             auth_value = attributes[inv_attr[key.to_s]]
             auth_value.try(:downcase!) if Devise.case_insensitive_keys.include?(key)
