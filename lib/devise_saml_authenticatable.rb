@@ -30,6 +30,10 @@ module Devise
   
   mattr_accessor :saml_default_user_key
   @@saml_default_user_key
+  
+  
+  mattr_accessor :saml_use_subject
+  @@saml_use_subject
 end
 
 # Add saml_authenticatable strategy to defaults.
