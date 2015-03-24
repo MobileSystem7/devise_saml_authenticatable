@@ -26,22 +26,34 @@ module Devise
 
       module ClassMethods
         include DeviseSamlAuthenticatable::SamlConfig
-        def authenticate_with_saml(attributes)
+        def authenticate_with_saml(saml_response) 
           key = Devise.saml_default_user_key
-          inv_attr = attribute_map.invert
-					auth_value = attributes[inv_attr[key.to_s]]
-					auth_value.try(:downcase!) if Devise.case_insensitive_keys.include?(key)
+          if (Devise.saml_use_subject)
+            auth_value = saml_response.name_id
+          else
+            attributes = saml_response.attributes
+            inv_attr = attribute_map.invert
+            auth_value = attributes[inv_attr[key.to_s]]
+            auth_value.try(:downcase!) if Devise.case_insensitive_keys.include?(key)
+          end
           resource = where(key => auth_value).first
           if (resource.nil? && !Devise.saml_create_user)
             logger.info("User(#{attributes[inv_attr[key.to_s]]}) not found.  Not configured to create the user.")
             return nil 
           end
 
-	        if (resource.nil? && Devise.saml_create_user)
-            logger.info("Creating user(#{attributes[inv_attr[key.to_s]]}).")
-	          resource = new
+          if (resource.nil? && Devise.saml_create_user)
+            resource = new
             set_user_saml_attributes(resource,attributes)
+            if (Devise.saml_use_subject)
+              resource.send "#{key}=", auth_value
+            else
+              logger.info("Creating user(#{attributes[inv_attr[key.to_s]]}).")              
+              set_user_saml_attributes(resource,attributes)
+            end
+
             resource.save!
+            
           end
 
           resource
