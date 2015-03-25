@@ -44,7 +44,8 @@ module Devise
 
           if (resource.nil? && Devise.saml_create_user)
             resource = new
-            set_user_saml_attributes(resource,attributes)
+            attributes = attributes.merge('source' => 'saml', 'login' => auth_value)
+            set_user_saml_attributes(resource, attributes)
             if (Devise.saml_use_subject)
               resource.send "#{key}=", auth_value
             else
